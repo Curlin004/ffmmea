@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FMEA-Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .fmea-container {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1px;
+            border: 1px solid #ccc;
+            position: relative;
+        }
+
+        .fmea-cell,
+        .header-cell {
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: white;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            resize: both;
+            overflow: auto;
+        }
+
+        .header-cell {
+            background: #eaeaea;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .circle {
+            width: 50px;
+            height: 50px;
+            background-color: #87CEEB;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            position: absolute;
+            cursor: move;
+            resize: both;
+            overflow: hidden;
+        }
+
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .small-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>FMEA-Tool</h1>
+
+    <div class="controls">
+        <button class="button" onclick="addRow()">Zeile hinzufügen</button>
+        <button class="button" onclick="addColumn()">Spalte hinzufügen</button>
+        <button class="button" onclick="addCircle()">Kreis hinzufügen</button>
+    </div>
+
+    <div class="fmea-container" id="fmeaTable">
+        <!-- Kopfzeilen -->
+        <div class="header-cell" contenteditable="true">Systeme/ Merkmale</div>
+        <div class="header-cell" contenteditable="true">Potentielle Fehler</div>
+        <div class="header-cell" contenteditable="true">Potentielle Folgen</div>
+        <div class="header-cell" contenteditable="true">Potentielle Ursachen</div>
+        <div class="header-cell" contenteditable="true">Prüfmaßnahmen</div>
+        <div class="header-cell" contenteditable="true">Auftreten</div>
+        <div class="header-cell" contenteditable="true">Bedeutung</div>
+        <div class="header-cell" contenteditable="true">Entdeckung</div>
+        <div class="header-cell" contenteditable="true">RPZ</div>
+        <div class="header-cell" contenteditable="true">Empfohlene Maßnahmen</div>
+        <div class="header-cell" contenteditable="true">Verantwortung</div>
+        <div class="header-cell" contenteditable="true">Verbesserter Zustand</div>
+
+        <!-- Beispielzeile -->
+        <div class="fmea-cell" contenteditable="true">Objekt</div>
+        <div class="fmea-cell" contenteditable="true">Schadensart</div>
+        <div class="fmea-cell" contenteditable="true">Auswirkung</div>
+        <div class="fmea-cell" contenteditable="true">Ursache</div>
+        <div class="fmea-cell" contenteditable="true">Ist-Prüfung</div>
+        <div class="fmea-cell" contenteditable="true">8</div>
+        <div class="fmea-cell" contenteditable="true">5</div>
+        <div class="fmea-cell" contenteditable="true">4</div>
+        <div class="fmea-cell" contenteditable="true">40</div>
+        <div class="fmea-cell" contenteditable="true">Empfohlene Maßnahme</div>
+        <div class="fmea-cell" contenteditable="true">Verantwortungsbereich</div>
+        <div class="fmea-cell" contenteditable="true">76</div>
+    </div>
+
+    <div class="small-text">RPZ = Risiko-Prioritätszahl</div>
+
+    <script>
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        function addRow() {
+            const table = document.getElementById('fmeaTable');
+            const columns = table.querySelectorAll('.header-cell').length;
+            for (let i = 0; i < columns; i++) {
+                const newCell = document.createElement('div');
+                newCell.classList.add('fmea-cell');
+                newCell.contentEditable = true;
+                newCell.textContent = "Neu";
+                table.appendChild(newCell);
+            }
+        }
+
+        function addColumn() {
+            const table = document.getElementById('fmeaTable');
+            const rows = table.querySelectorAll('.fmea-cell, .header-cell');
+            const columnCount = rows.length / table.querySelectorAll('.header-cell').length;
+            
+            const newHeader = document.createElement('div');
+            newHeader.classList.add('header-cell');
+            newHeader.contentEditable = true;
+            newHeader.textContent = "Neue Spalte";
+            table.insertBefore(newHeader, rows[rows.length - columnCount + 1]);
+        }
+
+        function addCircle() {
+            const circle = document.createElement('div');
+            circle.classList.add('circle');
+            circle.contentEditable = true;
+            circle.textContent = "Neu";
+            circle.style.top = "100px";
+            circle.style.left = "100px";
+            document.body.appendChild(circle);
+
+            circle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.offsetX;
+                offsetY = e.offsetY;
+                circle.style.zIndex = 1000;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    circle.style.top = `${e.clientY - offsetY}px`;
+                    circle.style.left = `${e.clientX - offsetX}px`;
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            circle.addEventListener('dblclick', () => {
+                const newSize = prompt("Geben Sie die neue Größe ein (in Pixel):", "50");
+                if (newSize) {
+                    circle.style.width = `${newSize}px`;
+                    circle.style.height = `${newSize}px`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
